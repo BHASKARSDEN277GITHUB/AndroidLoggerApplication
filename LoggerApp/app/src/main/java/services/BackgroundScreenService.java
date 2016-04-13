@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.nfc.Tag;
 import android.os.Environment;
 import android.os.IBinder;
@@ -29,6 +30,7 @@ public class BackgroundScreenService extends Service {
     private static List<String> screenOnActiveList = new ArrayList<String>();
     private static List<String> screenOffActiveList = new ArrayList<String>();
     private final String fileName = "loggerAppLogs.txt";
+    private final List<String> whiteList = new ArrayList<String>();
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -38,6 +40,22 @@ public class BackgroundScreenService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // Add apps to log in whitelist
+        whiteList.add("LoggerApp");
+        whiteList.add("Settings");
+        whiteList.add("Gallery");
+        whiteList.add("imo");
+        whiteList.add("AppLock");
+        whiteList.add("Messages");
+        whiteList.add("Contacts");
+        whiteList.add("Wheather");
+        whiteList.add("Phone");
+        whiteList.add("LogsProvider");
+        whiteList.add("Hangouts Widget");
+        whiteList.add("whatsapp");
+        whiteList.add("Maps");
+        whiteList.add("Docs");
         // Register service that handles screen off and on logic
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
@@ -56,6 +74,7 @@ public class BackgroundScreenService extends Service {
             Log.d(TAG,"BackgroundScreenService Screen Status: "+screenStatus);
 
             ActivityManager am = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+            PackageManager pm = this.getPackageManager();
             List<ActivityManager.RunningAppProcessInfo> list = am.getRunningAppProcesses();
             List<String> currentApps = new ArrayList<String>();
             List<String> currenSessionApps = new ArrayList<String>();
@@ -63,13 +82,25 @@ public class BackgroundScreenService extends Service {
             //get current apps
             for (int i = 0; i < list.size(); i++) {
                 int length = list.get(i).processName.split("\\.").length;
-                String appName = length > 0 ? list.get(i).processName.split("\\.")[length-1] : list.get(i).processName;
-                currentApps.add(appName);
-                //String fullName = list.get(i).processName;
-                /*String[] name=fullName.split("\\.");*/
-                //Log.d(TAG,appName);
-                //Log.d(TAG, ""+name.toString());
+                String packageName = list.get(i).processName;
+                //get app name from packagename
+                //String appName = length > 0 ? list.get(i).processName.split("\\.")[length-1] : list.get(i).processName;
+                try {
+                    String leftAppName = length > 0 ? list.get(i).processName.split("\\.")[length-1] : list.get(i).processName;
+                    if(whiteList.contains(leftAppName)){
+                        currentApps.add(leftAppName);
+                    }
+                    String appName = pm.getApplicationLabel(pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA)).toString();
+                    if(whiteList.contains(appName)) {
+                        currentApps.add(appName);
+                    }
+                    Log.d(TAG+"packagename",packageName);
 
+                }catch (Exception e){
+                    Log.d(TAG+"packagename",packageName);
+                    e.printStackTrace();
+                    //currentApps.add(packageName);
+                }
             }
 
 
