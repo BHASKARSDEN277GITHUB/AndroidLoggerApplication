@@ -7,6 +7,9 @@ import android.os.PowerManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -80,7 +83,27 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
     }
 
-    public void readWriteLogs(){
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.about:
+                about();
+                return true;
+            default:
+                return true ;
+        }
+    }
+
+    // New behaviour methods here
+    private void readWriteLogs(){
         TextView textView = (TextView)findViewById(R.id.tv1);
         textView.setText("Logger Applicaton Bootstrapped");
 
@@ -115,5 +138,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void about(){
+        Intent i = new Intent(getApplicationContext(),AboutActivity.class);
+        startActivity(i);
+    }
 
 }
